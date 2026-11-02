@@ -1,3 +1,5 @@
+import { ownerPreviewHost, serveOwnerPreview } from '../edge/owner-preview.mjs';
+
 const publicFiles = new Set([
   '/robots.txt', '/sitemap.xml', '/sitemap-index.xml', '/llms.txt',
   '/favicon.svg', '/favicon.ico', '/style.css', '/site.js'
@@ -10,6 +12,9 @@ function isPublicResource(pathname) {
 }
 
 export async function onRequest({ request, next, env }) {
+  if (new URL(request.url).hostname === ownerPreviewHost) {
+    return serveOwnerPreview(request, next);
+  }
   const pathname = new URL(request.url).pathname;
   const country = (request.cf?.country || request.headers.get('CF-IPCountry') || '').toUpperCase();
   if (country === 'MA' && !isPublicResource(pathname)) {
